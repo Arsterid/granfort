@@ -1,0 +1,46 @@
+{
+  "name": "Granfort Environment",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24-trixie",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "js/ts.inlayHints.parameterNames.enabled": "all",
+        "js/ts.inlayHints.variableTypes.enabled": true,
+        "js/ts.inlayHints.functionLikeReturnTypes.enabled": true,
+        "js/ts.referencesCodeLens.enabled": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit",
+          "source.fixAll.eslint": "explicit",
+          "source.addMissingImports": "always"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "telemetry.telemetryLevel": "off"
+      }
+    }
+  },
+  "remoteUser": "node",
+  "postCreateCommand": "sudo chown node:node frontend/node_modules frontend/.next",
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/frontend/node_modules,type=volume",
+    "source=${localWorkspaceFolderBasename}-next-cache,target=${containerWorkspaceFolder}/frontend/.next,type=volume"
+  ]
+}
