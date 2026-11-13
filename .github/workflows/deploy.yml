@@ -3,7 +3,7 @@ name: Deploy Granfort to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - page
     paths:
       - 'frontend/**'
       - '.github/workflows/**'

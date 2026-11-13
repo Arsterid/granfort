@@ -1,0 +1,9 @@
+export const ProductErrorCode = {
+  NOT_FOUND: "PRODUCT_NOT_FOUND",
+  VEHICLE_VARIANT_NOT_FOUND: "VEHICLE_VARIANT_NOT_FOUND",
+  HAS_NO_COMPATIBILITY: "PRODUCT_HAS_NO_COMPATIBILITY",
+  SLUG_ALREADY_EXISTS: "PRODUCT_SLUG_ALREADY_EXISTS",
+  SKU_ALREADY_EXISTS: "PRODUCT_SKU_ALREADY_EXISTS",
+} as const;
+
+export type ProductErrorCode = (typeof ProductErrorCode)[keyof typeof ProductErrorCode];

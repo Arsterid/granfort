@@ -1,7 +1,10 @@
 {
   "name": "Granfort Environment",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:24-trixie",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "runServices": ["app", "db"],
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -38,9 +41,9 @@
     }
   },
   "remoteUser": "node",
-  "postCreateCommand": "sudo chown node:node frontend/node_modules frontend/.next",
+  "postCreateCommand": "sudo chown node:node node_modules .next",
   "mounts": [
-    "source=${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/frontend/node_modules,type=volume",
-    "source=${localWorkspaceFolderBasename}-next-cache,target=${containerWorkspaceFolder}/frontend/.next,type=volume"
+    "source=${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=${localWorkspaceFolderBasename}-next-cache,target=${containerWorkspaceFolder}/.next,type=volume"
   ]
 }
