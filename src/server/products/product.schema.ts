@@ -38,6 +38,7 @@ export const updateProductSchema = z
     description: nullableText(10_000).optional(),
     sortOrder: z.number().int().min(0).max(1_000_000).optional(),
     compatibilities: productCompatibilitiesSchema.optional(),
+    status: z.enum(ProductStatus).optional(),
   })
   .refine((data) => Object.values(data).some((value) => value !== undefined), {
     message: "At least one field must be provided",
@@ -51,5 +52,4 @@ export const productIdSchema = z.uuid();
 
 export type CreateProductInput = z.output<typeof createProductSchema>;
 export type UpdateProductInput = z.output<typeof updateProductSchema>;
-
 export type ChangeProductStatusInput = z.output<typeof changeProductStatusSchema>;

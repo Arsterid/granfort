@@ -8,6 +8,7 @@ import { ProductErrorCode } from "./product.errors";
 import { productRepository } from "./product.repository";
 
 import { getStorageProvider } from "../storage/storage";
+
 import type {
   ChangeProductStatusInput,
   CreateProductInput,
@@ -30,13 +31,21 @@ async function assertVehicleVariantsExist(compatibilities: { vehicleVariantId: s
   }
 
   const ids = compatibilities.map((item) => item.vehicleVariantId);
-
   const existingVariants = await productRepository.findVehicleVariantIds(ids);
 
   if (existingVariants.length !== ids.length) {
     throw new NotFoundError(
       ProductErrorCode.VEHICLE_VARIANT_NOT_FOUND,
       "One or more vehicle variants do not exist"
+    );
+  }
+}
+
+function assertCanPublish(compatibilityCount: number) {
+  if (compatibilityCount === 0) {
+    throw new ConflictError(
+      ProductErrorCode.HAS_NO_COMPATIBILITY,
+      "A product must have at least one compatible vehicle before publishing"
     );
   }
 }
@@ -71,10 +80,16 @@ export const productService = {
   },
 
   async update(id: string, input: UpdateProductInput) {
-    await getProductOrThrow(id);
+    const product = await getProductOrThrow(id);
 
     if (input.compatibilities !== undefined) {
       await assertVehicleVariantsExist(input.compatibilities);
+    }
+
+    if (input.status === ProductStatus.PUBLISHED) {
+      const compatibilityCount = input.compatibilities?.length ?? product.vehicles.length;
+
+      assertCanPublish(compatibilityCount);
     }
 
     return productRepository.update(id, input);
@@ -83,11 +98,8 @@ export const productService = {
   async changeStatus(id: string, input: ChangeProductStatusInput) {
     const product = await getProductOrThrow(id);
 
-    if (input.status === ProductStatus.PUBLISHED && product.vehicles.length === 0) {
-      throw new ConflictError(
-        ProductErrorCode.HAS_NO_COMPATIBILITY,
-        "A product must have at least one compatible vehicle before publishing"
-      );
+    if (input.status === ProductStatus.PUBLISHED) {
+      assertCanPublish(product.vehicles.length);
     }
 
     return productRepository.changeStatus(id, input);
@@ -95,7 +107,6 @@ export const productService = {
 
   async delete(id: string) {
     const storage = getStorageProvider();
-
     const storageKeys = await productRepository.deleteWithImages(id);
 
     if (storageKeys === null) {

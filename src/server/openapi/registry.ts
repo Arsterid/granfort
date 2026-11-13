@@ -1,11 +1,7 @@
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 
-import {
-  changeProductStatusSchema,
-  createProductSchema,
-  updateProductSchema,
-} from "@/server/products/product.schema";
+import { createProductSchema, updateProductSchema } from "@/server/products/product.schema";
 
 import { adminProductDtoSchema, publicProductDtoSchema } from "@/server/products/product.dto";
 import { vehicleBrandDtoSchema } from "../vehicle-brands/vehicle-brand.dto";
@@ -41,6 +37,14 @@ const AdminProductResponse = z
   })
   .meta({
     id: "AdminProductResponse",
+  });
+
+const AdminProductsResponse = z
+  .strictObject({
+    data: z.array(AdminProduct),
+  })
+  .meta({
+    id: "AdminProductsResponse",
   });
 
 const ApiErrorResponse = z
@@ -177,6 +181,49 @@ registry.registerPath({
           schema: z.strictObject({
             data: z.array(PublicProduct),
           }),
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponse,
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/v1/admin/products",
+  operationId: "getAdminProducts",
+  tags: ["Products"],
+  summary: "Get all products for administration",
+  description:
+    "Returns all products, including drafts, published and archived products. Requires administrator authentication.",
+
+  security: [
+    {
+      [authSession.name]: [],
+    },
+  ],
+
+  responses: {
+    200: {
+      description: "All products",
+      content: {
+        "application/json": {
+          schema: AdminProductsResponse,
+        },
+      },
+    },
+    401: {
+      description: "Authentication required",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponse,
         },
       },
     },
@@ -403,74 +450,6 @@ registry.registerPath({
     },
     404: {
       description: "Product not found",
-      content: {
-        "application/json": {
-          schema: ApiErrorResponse,
-        },
-      },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "patch",
-  path: "/api/v1/products/{id}/status",
-  operationId: "changeProductStatus",
-  tags: ["Products"],
-  summary: "Change product status",
-  description:
-    "Publishes, unpublishes or archives a product. Publishing requires at least one compatible vehicle.",
-  security: [{ [authSession.name]: [] }],
-
-  request: {
-    params: ProductIdParams,
-    body: {
-      required: true,
-      content: {
-        "application/json": {
-          schema: changeProductStatusSchema.meta({
-            id: "ChangeProductStatusRequest",
-          }),
-        },
-      },
-    },
-  },
-
-  responses: {
-    200: {
-      description: "Product status updated",
-      content: {
-        "application/json": {
-          schema: AdminProductResponse,
-        },
-      },
-    },
-    400: {
-      description: "Invalid request",
-      content: {
-        "application/json": {
-          schema: ApiErrorResponse,
-        },
-      },
-    },
-    401: {
-      description: "Authentication required",
-      content: {
-        "application/json": {
-          schema: ApiErrorResponse,
-        },
-      },
-    },
-    404: {
-      description: "Product not found",
-      content: {
-        "application/json": {
-          schema: ApiErrorResponse,
-        },
-      },
-    },
-    409: {
-      description: "Product cannot be published",
       content: {
         "application/json": {
           schema: ApiErrorResponse,
