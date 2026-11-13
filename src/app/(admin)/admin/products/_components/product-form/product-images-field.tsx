@@ -7,8 +7,7 @@ import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-import type { ProductImage } from "./product-types";
+import { ProductImage } from "../product-types";
 
 type ProductImagesFieldProps = {
   images: ProductImage[];

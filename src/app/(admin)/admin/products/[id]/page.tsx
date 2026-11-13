@@ -1,4 +1,4 @@
-import { ProductForm } from "../_components/product-form";
+import { ProductForm } from "../_components/product-form/product-form";
 
 type PageProps = {
   params: Promise<{

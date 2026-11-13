@@ -1,92 +1,93 @@
 "use client";
 
-import { LoaderCircle, Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import type { AdminProductDto } from "@/server/products/product.dto";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { ProductsTable } from "./products-table";
-import { ProductsToolbar } from "./products-toolbar";
+import type { AdminDataTableColumn } from "../../_components/admin-data-table";
+import { AdminResourcePage } from "../../_components/admin-resource-page";
+
+import { useAdminProducts } from "../_hooks/use-products";
+import { ProductStatusBadge } from "./product-status-badge";
 
 export type ProductStatus = AdminProductDto["status"];
-
 export type ProductStatusFilter = "ALL" | ProductStatus;
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
-function getApiErrorMessage(payload: unknown): string | null {
-  if (!isRecord(payload) || !isRecord(payload.error)) {
-    return null;
-  }
+const columns: AdminDataTableColumn<AdminProductDto>[] = [
+  {
+    id: "product",
+    header: "Товар",
+    width: "26%",
+    cell: (product) => (
+      <div className="min-w-0">
+        <p className="truncate font-medium">{product.name}</p>
+        <p className="text-muted-foreground truncate text-xs">{product.slug}</p>
+      </div>
+    ),
+  },
+  {
+    id: "sku",
+    header: "SKU",
+    width: "12%",
+    cell: (product) => product.sku || "—",
+  },
+  {
+    id: "compatibilities",
+    header: "Совместимости",
+    width: "15%",
+    cell: (product) => product.compatibilities.length,
+  },
+  {
+    id: "images",
+    header: "Изображения",
+    width: "12%",
+    cell: (product) => product.images.length,
+  },
+  {
+    id: "updatedAt",
+    header: "Обновлён",
+    width: "17%",
+    cell: (product) => formatDate(product.updatedAt),
+  },
+  {
+    id: "status",
+    header: "Статус",
+    width: "18%",
+    cell: (product) => <ProductStatusBadge status={product.status} />,
+  },
+];
 
-  return typeof payload.error.message === "string" ? payload.error.message : null;
-}
+const statusFilters: {
+  value: ProductStatusFilter;
+  label: string;
+}[] = [
+  { value: "ALL", label: "Все товары" },
+  { value: "DRAFT", label: "Черновики" },
+  { value: "PUBLISHED", label: "Опубликованные" },
+  { value: "ARCHIVED", label: "Архив" },
+];
 
 export function ProductsPage() {
-  const [products, setProducts] = useState<AdminProductDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProductStatusFilter>("ALL");
 
-  const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadProducts() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch("/api/v1/admin/products", {
-          method: "GET",
-          credentials: "same-origin",
-          cache: "no-store",
-          headers: {
-            Accept: "application/json",
-          },
-          signal: controller.signal,
-        });
-
-        const payload: unknown = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          throw new Error(
-            getApiErrorMessage(payload) ?? `Не удалось загрузить товары (HTTP ${response.status}).`
-          );
-        }
-
-        if (!isRecord(payload) || !Array.isArray(payload.data)) {
-          throw new Error("Сервер вернул некорректный формат данных.");
-        }
-
-        setProducts(payload.data as AdminProductDto[]);
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        setError(error instanceof Error ? error.message : "Произошла ошибка при загрузке товаров.");
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadProducts();
-
-    return () => {
-      controller.abort();
-    };
-  }, [reloadKey]);
+  const { data: products = [], isPending, isFetching, error, refetch } = useAdminProducts();
 
   const statusCounts = useMemo<Record<ProductStatus, number>>(() => {
     const counts: Record<ProductStatus, number> = {
@@ -103,15 +104,15 @@ export function ProductsPage() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase();
+    const normalizedSearch = search.trim().toLocaleLowerCase("ru");
 
     return products.filter((product) => {
       const matchesStatus = statusFilter === "ALL" || product.status === statusFilter;
 
       const matchesSearch =
         normalizedSearch.length === 0 ||
-        product.name.toLocaleLowerCase().includes(normalizedSearch) ||
-        (product.sku ?? "").toLocaleLowerCase().includes(normalizedSearch);
+        product.name.toLocaleLowerCase("ru").includes(normalizedSearch) ||
+        (product.sku ?? "").toLocaleLowerCase("ru").includes(normalizedSearch);
 
       return matchesStatus && matchesSearch;
     });
@@ -119,37 +120,33 @@ export function ProductsPage() {
 
   const hasActiveFilters = search.trim().length > 0 || statusFilter !== "ALL";
 
+  function reloadProducts() {
+    void refetch();
+  }
+
   function clearFilters() {
     setSearch("");
     setStatusFilter("ALL");
   }
 
+  const errorMessage =
+    error instanceof Error ? error.message : error ? "Не удалось загрузить товары." : null;
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-brand text-xs font-bold tracking-[0.18em] uppercase">
-            GRANFORT / ПРОИЗВОДСТВО
-          </p>
-
-          <h1 className="text-foreground mt-3 text-3xl font-extrabold tracking-tight">Товары</h1>
-
-          <p className="text-muted-foreground mt-2 text-sm">
-            Управление ассортиментом, характеристиками и публикациями.
-          </p>
-
-          <p className="text-muted-foreground mt-2 text-xs">Всего товаров: {products.length}</p>
-        </div>
-
-        <div className="flex items-center gap-2">
+    <AdminResourcePage
+      eyebrow="GRANFORT / ПРОИЗВОДСТВО"
+      title="Товары"
+      description="Управление ассортиментом, характеристиками и публикациями."
+      headerActions={
+        <>
           <Button
             type="button"
             variant="outline"
             size="lg"
-            onClick={() => setReloadKey((value) => value + 1)}
-            disabled={isLoading}
+            onClick={reloadProducts}
+            disabled={isFetching}
           >
-            <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
             Обновить
           </Button>
 
@@ -157,34 +154,53 @@ export function ProductsPage() {
             <Plus className="size-4" />
             Добавить товар
           </Button>
-        </div>
-      </header>
+        </>
+      }
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Поиск по названию или артикулу..."
+      filters={statusFilters.map((filter) => {
+        const count = filter.value === "ALL" ? products.length : statusCounts[filter.value];
 
-      <ProductsToolbar
-        search={search}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        statusCounts={statusCounts}
-        totalCount={products.length}
-      />
+        const isActive = statusFilter === filter.value;
 
-      <ProductsTable
-        products={filteredProducts}
-        totalCount={products.length}
-        isLoading={isLoading}
-        error={error}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        onRetry={() => setReloadKey((value) => value + 1)}
-      />
+        return (
+          <Button
+            key={filter.value}
+            type="button"
+            size="sm"
+            variant={isActive ? "default" : "outline"}
+            aria-pressed={isActive}
+            onClick={() => setStatusFilter(filter.value)}
+          >
+            {filter.label}
 
-      {isLoading && products.length > 0 && (
-        <div className="text-muted-foreground flex items-center justify-center gap-2 text-xs">
-          <LoaderCircle className="size-3.5 animate-spin" />
-          Обновление списка...
-        </div>
-      )}
-    </div>
+            <Badge variant="secondary" className="ml-1 h-5 min-w-5 justify-center px-1">
+              {count}
+            </Badge>
+          </Button>
+        );
+      })}
+      tableTitle="Список товаров"
+      tableDescription={`Показано ${filteredProducts.length} из ${products.length}`}
+      data={filteredProducts}
+      columns={columns}
+      getRowId={(product) => product.id}
+      getRowLabel={(product) => `Открыть товар ${product.name}`}
+      onRowClick={(product) => router.push(`/admin/products/${product.id}`)}
+      isLoading={isPending}
+      error={errorMessage}
+      onRetry={reloadProducts}
+      emptyMessage={
+        hasActiveFilters ? "По заданным условиям товары не найдены." : "Товаров пока нет."
+      }
+      emptyAction={
+        hasActiveFilters ? (
+          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
+            Сбросить фильтры
+          </Button>
+        ) : undefined
+      }
+    />
   );
 }

@@ -11,8 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import type { ProductFormValues } from "./product-form-schema";
+import type { ProductFormValues } from "./product-form/product-form-schema";
 
 const statusItems = [
   { label: "Черновик", value: "DRAFT" },
