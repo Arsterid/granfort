@@ -33,7 +33,6 @@ const productSelect = {
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     select: {
       id: true,
-      storageKey: true,
       altText: true,
       sortOrder: true,
     },
@@ -208,14 +207,30 @@ export const productRepository = {
     );
   },
 
-  delete(id: string) {
-    return execute(() =>
-      prisma.product.delete({
-        where: { id },
-        select: {
-          id: true,
-        },
-      })
-    );
+  deleteWithImages(id: string) {
+    return execute(async () => {
+      return prisma.$transaction(async (tx) => {
+        const product = await tx.product.findUnique({
+          where: { id },
+          select: {
+            images: {
+              select: {
+                storageKey: true,
+              },
+            },
+          },
+        });
+
+        if (!product) {
+          return null;
+        }
+
+        await tx.product.delete({
+          where: { id },
+        });
+
+        return product.images.map((image) => image.storageKey);
+      });
+    });
   },
 };

@@ -13,7 +13,7 @@ export const publicProductDtoSchema = z.strictObject({
   images: z.array(
     z.strictObject({
       id: z.uuid(),
-      storageKey: z.string(),
+      url: z.string(),
       altText: z.string().nullable(),
       sortOrder: z.number().int(),
     })
@@ -65,7 +65,7 @@ export function toPublicProductDto(product: ProductRecord): PublicProductDto {
 
     images: product.images.map((image) => ({
       id: image.id,
-      storageKey: image.storageKey,
+      url: `/api/v1/product-images/${image.id}`,
       altText: image.altText,
       sortOrder: image.sortOrder,
     })),
@@ -97,6 +97,14 @@ export function toPublicProductDto(product: ProductRecord): PublicProductDto {
 export function toAdminProductDto(product: ProductRecord): AdminProductDto {
   return {
     ...toPublicProductDto(product),
+
+    images: product.images.map((image) => ({
+      id: image.id,
+      url: `/api/v1/products/${product.id}/images/${image.id}`,
+      altText: image.altText,
+      sortOrder: image.sortOrder,
+    })),
+
     status: product.status,
     sortOrder: product.sortOrder,
     createdAt: product.createdAt.toISOString(),

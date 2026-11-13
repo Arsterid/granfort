@@ -41,7 +41,7 @@
     }
   },
   "remoteUser": "node",
-  "postCreateCommand": "sudo chown node:node node_modules .next",
+  "postCreateCommand": "sudo chown node:node node_modules .next && sudo mkdir -p /var/lib/granfort/uploads && sudo chown -R node:node /var/lib/granfort/uploads",
   "mounts": [
     "source=${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
     "source=${localWorkspaceFolderBasename}-next-cache,target=${containerWorkspaceFolder}/.next,type=volume"

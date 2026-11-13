@@ -20,8 +20,8 @@ import {
 } from "../vehicle-models/vehicle-model.schema";
 import { vehicleVariantDtoSchema } from "../vehicle-variants/vehicle-variant.dto";
 import {
-  listVehicleVariantsQuerySchema,
   createVehicleVariantSchema,
+  listVehicleVariantsQuerySchema,
   updateVehicleVariantSchema,
 } from "../vehicle-variants/vehicle-variant.schema";
 
@@ -1131,6 +1131,178 @@ registry.registerPath({
           schema: ApiErrorResponse,
         },
       },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/v1/products/{id}/images",
+  tags: ["Products"],
+  summary: "Upload product image",
+  description: "Upload a JPEG, PNG or WebP image for a product. Maximum size: 10 MB.",
+  security: [{ AuthJsSession: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+    body: {
+      description: "Image file and optional alternative text",
+      required: true,
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            file: z.string().meta({
+              format: "binary",
+              description: "JPEG, PNG or WebP image, up to 10 MB",
+            }),
+            altText: z.string().max(500).optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Image uploaded successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.uuid(),
+            productId: z.uuid(),
+            altText: z.string().nullable(),
+            sortOrder: z.number().int(),
+            createdAt: z.iso.datetime(),
+          }),
+        },
+      },
+    },
+    400: {
+      description: "Invalid request or unsupported image",
+    },
+    401: {
+      description: "Unauthorized",
+    },
+    409: {
+      description: "Resource conflict",
+    },
+    500: {
+      description: "Internal server error",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/v1/products/{id}/images/{imageId}",
+  tags: ["Products"],
+  summary: "Delete product image",
+  description: "Delete a product image from storage and database.",
+  security: [{ AuthJsSession: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid(),
+      imageId: z.uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Image deleted successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.uuid(),
+          }),
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized",
+    },
+    404: {
+      description: "Product or image not found",
+    },
+    500: {
+      description: "Internal server error",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/v1/product-images/{imageId}",
+  tags: ["Products"],
+  summary: "Get product image",
+  description: "Retrieve an image belonging to a published product.",
+  request: {
+    params: z.object({
+      imageId: z.uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Image retrieved successfully",
+      content: {
+        "image/jpeg": {
+          schema: z.string().meta({ format: "binary" }),
+        },
+        "image/png": {
+          schema: z.string().meta({ format: "binary" }),
+        },
+        "image/webp": {
+          schema: z.string().meta({ format: "binary" }),
+        },
+      },
+    },
+    400: {
+      description: "Invalid image ID",
+    },
+    404: {
+      description: "Image not found",
+    },
+    500: {
+      description: "Internal server error",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/v1/products/{id}/images/{imageId}",
+  tags: ["Products"],
+  summary: "Get product image (admin)",
+  description:
+    "Retrieve an image of any product, including drafts and archived products. Admin authentication required.",
+  security: [{ AuthJsSession: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid(),
+      imageId: z.uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Image retrieved successfully",
+      content: {
+        "image/jpeg": {
+          schema: z.string().meta({ format: "binary" }),
+        },
+        "image/png": {
+          schema: z.string().meta({ format: "binary" }),
+        },
+        "image/webp": {
+          schema: z.string().meta({ format: "binary" }),
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized",
+    },
+    404: {
+      description: "Image not found",
+    },
+    500: {
+      description: "Internal server error",
     },
   },
 });

@@ -7,6 +7,7 @@ import { ConflictError, NotFoundError } from "@/server/errors/app-error";
 import { ProductErrorCode } from "./product.errors";
 import { productRepository } from "./product.repository";
 
+import { getStorageProvider } from "../storage/storage";
 import type {
   ChangeProductStatusInput,
   CreateProductInput,
@@ -93,8 +94,22 @@ export const productService = {
   },
 
   async delete(id: string) {
-    await getProductOrThrow(id);
+    const storage = getStorageProvider();
 
-    return productRepository.delete(id);
+    const storageKeys = await productRepository.deleteWithImages(id);
+
+    if (storageKeys === null) {
+      throw new NotFoundError(ProductErrorCode.NOT_FOUND, "Product not found");
+    }
+
+    const results = await Promise.allSettled(storageKeys.map((key) => storage.delete(key)));
+
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error("Failed to delete product image from storage", result.reason);
+      }
+    }
+
+    return { id };
   },
 };
