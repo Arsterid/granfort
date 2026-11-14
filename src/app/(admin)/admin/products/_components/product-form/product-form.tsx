@@ -11,8 +11,10 @@ import type { AdminProductDto } from "@/server/products/product.dto";
 
 import { productFormSchema, type ProductFormValues } from "./product-form-schema";
 
+import { ProductCompatibilitiesField } from "./product-compatibilities-field";
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductImagesField } from "./product-images-field";
+import { ProductStatusField } from "./product-status-field";
 
 import { AdminEntityDeleteAction } from "../../../_components/admin-entity-delete-action";
 import { AdminEntityEditor } from "../../../_components/admin-entity-editor";
@@ -27,7 +29,6 @@ import {
   useProduct,
   useUpdateProduct,
 } from "../../_hooks/use-products";
-import { ProductStatusField } from "./product-status-field";
 
 type ProductFormProps = { mode: "create" } | { mode: "edit"; productId: string };
 
@@ -39,6 +40,10 @@ function toFormValues(product: AdminProductDto): ProductFormValues {
     description: product.description ?? "",
     sortOrder: product.sortOrder,
     status: product.status,
+    compatibilities: product.compatibilities.map((compatibility) => ({
+      vehicleVariantId: compatibility.vehicleVariantId,
+      fitmentNotes: compatibility.fitmentNotes ?? "",
+    })),
   };
 }
 
@@ -74,6 +79,7 @@ export function ProductForm(props: ProductFormProps) {
       description: "",
       sortOrder: 0,
       status: "DRAFT",
+      compatibilities: [],
     },
   });
 
@@ -142,17 +148,23 @@ export function ProductForm(props: ProductFormProps) {
         sortOrder: values.sortOrder,
       };
 
+      const compatibilities = values.compatibilities.map(({ vehicleVariantId, fitmentNotes }) => ({
+        vehicleVariantId,
+        fitmentNotes: fitmentNotes.trim() || null,
+      }));
+
       const savedProduct = isUpdating
         ? await updateMutation.mutateAsync({
             id: productId,
             input: {
               ...commonPayload,
               status: values.status,
+              compatibilities,
             },
           })
         : await createMutation.mutateAsync({
             ...commonPayload,
-            compatibilities: [],
+            compatibilities,
           });
 
       if (!isUpdating) {
@@ -208,6 +220,8 @@ export function ProductForm(props: ProductFormProps) {
         {isPersisted && <ProductStatusField />}
 
         <ProductDetailsFields />
+
+        <ProductCompatibilitiesField initialCompatibilities={product?.compatibilities ?? []} />
 
         <ProductImagesField
           images={product?.images ?? []}

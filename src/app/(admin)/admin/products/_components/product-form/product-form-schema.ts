@@ -24,6 +24,13 @@ export const productFormSchema = z.object({
     .max(1_000_000, "Слишком большое значение порядка сортировки"),
 
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+
+  compatibilities: z.array(
+    z.object({
+      vehicleVariantId: z.uuid(),
+      fitmentNotes: z.string().trim().max(2000, "Примечание не должно превышать 2000 символов"),
+    })
+  ),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

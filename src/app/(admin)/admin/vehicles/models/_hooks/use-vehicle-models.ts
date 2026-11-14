@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { adminQueryKeys } from "@/lib/query/query-keys";
+
 import {
   createVehicleModel,
   deleteVehicleModel,
@@ -9,17 +11,17 @@ import {
   getVehicleModels,
   updateVehicleModel,
 } from "@/lib/api/resources/vehicle-models";
-import { adminQueryKeys } from "@/lib/query/query-keys";
 
 import type {
   CreateVehicleModelInput,
   UpdateVehicleModelInput,
 } from "@/server/vehicle-models/vehicle-model.schema";
 
-export function useVehicleModels(brandId?: string) {
+export function useVehicleModels(brandId?: string, enabled = true) {
   return useQuery({
     queryKey: adminQueryKeys.vehicleModels.list(brandId ? { brandId } : {}),
     queryFn: ({ signal }) => getVehicleModels(brandId, signal),
+    enabled,
   });
 }
 

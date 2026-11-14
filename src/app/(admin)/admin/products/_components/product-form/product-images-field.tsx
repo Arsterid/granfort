@@ -165,6 +165,7 @@ export function ProductImagesField({
                   className={`object-cover transition-all duration-300 ease-out group-hover:scale-110 ${
                     isMarkedForDeletion ? "opacity-30 grayscale" : ""
                   }`}
+                  loading="eager"
                 />
 
                 <Button

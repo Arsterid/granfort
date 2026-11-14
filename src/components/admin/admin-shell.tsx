@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
@@ -35,6 +36,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { assetPath } from "@/lib/assetPath";
 
 const catalogLinks = [
   {
@@ -97,9 +99,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 render={<Link href="/admin" />}
                 className="h-14 hover:bg-white/5"
               >
-                <span className="bg-brand grid size-9 shrink-0 place-items-center rounded-md text-xl font-black text-white">
-                  G
-                </span>
+                <Image
+                  src={assetPath("/icon.svg")}
+                  alt="GRANFORT"
+                  width={64}
+                  height={64}
+                  unoptimized
+                  loading="eager"
+                  className="max-sm:w-logo-compact h-auto"
+                />
 
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-base font-extrabold tracking-[0.12em] text-white">
