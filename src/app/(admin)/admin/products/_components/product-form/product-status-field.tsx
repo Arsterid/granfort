@@ -35,13 +35,13 @@ export function ProductStatusField() {
 
       <CardContent>
         <FieldGroup>
-          <Field data-invalid={!!errors.status}>
-            <FieldLabel htmlFor="status">Статус</FieldLabel>
+          <Controller
+            control={control}
+            name="status"
+            render={({ field }) => (
+              <Field data-invalid={!!errors.status}>
+                <FieldLabel htmlFor="product-status">Статус</FieldLabel>
 
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
                 <Select
                   items={statusItems}
                   value={field.value}
@@ -50,7 +50,7 @@ export function ProductStatusField() {
                   }}
                 >
                   <SelectTrigger
-                    id="status"
+                    id="product-status"
                     aria-invalid={!!errors.status}
                     className="w-full sm:max-w-sm"
                     onBlur={field.onBlur}
@@ -66,11 +66,11 @@ export function ProductStatusField() {
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-            />
 
-            {errors.status && <FieldError errors={[errors.status]} />}
-          </Field>
+                {errors.status && <FieldError errors={[errors.status]} />}
+              </Field>
+            )}
+          />
         </FieldGroup>
       </CardContent>
     </Card>

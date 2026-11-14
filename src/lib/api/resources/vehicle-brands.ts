@@ -8,6 +8,10 @@ import type {
 
 const BASE_URL = "/api/v1/vehicle-brands";
 
+function getBrandUrl(id: string) {
+  return `${BASE_URL}/${encodeURIComponent(id)}`;
+}
+
 export async function getVehicleBrands(signal?: AbortSignal) {
   const response = await apiRequest<ApiDataResponse<VehicleBrandDto[]>>(BASE_URL, {
     signal,
@@ -18,10 +22,10 @@ export async function getVehicleBrands(signal?: AbortSignal) {
 }
 
 export async function getVehicleBrand(id: string, signal?: AbortSignal) {
-  const response = await apiRequest<ApiDataResponse<VehicleBrandDto>>(
-    `${BASE_URL}/${encodeURIComponent(id)}`,
-    { signal, cache: "no-store" }
-  );
+  const response = await apiRequest<ApiDataResponse<VehicleBrandDto>>(getBrandUrl(id), {
+    signal,
+    cache: "no-store",
+  });
 
   return response.data;
 }
@@ -36,17 +40,16 @@ export async function createVehicleBrand(input: CreateVehicleBrandInput) {
 }
 
 export async function updateVehicleBrand(id: string, input: UpdateVehicleBrandInput) {
-  const response = await apiRequest<ApiDataResponse<VehicleBrandDto>>(
-    `${BASE_URL}/${encodeURIComponent(id)}`,
-    {
-      method: "PATCH",
-      json: input,
-    }
-  );
+  const response = await apiRequest<ApiDataResponse<VehicleBrandDto>>(getBrandUrl(id), {
+    method: "PATCH",
+    json: input,
+  });
 
   return response.data;
 }
 
 export async function deleteVehicleBrand(id: string) {
-  await apiRequest<void>(`${BASE_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
+  await apiRequest<void>(getBrandUrl(id), {
+    method: "DELETE",
+  });
 }

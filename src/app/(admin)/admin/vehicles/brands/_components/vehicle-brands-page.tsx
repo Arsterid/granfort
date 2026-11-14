@@ -7,12 +7,27 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
+import type { VehicleBrandDto } from "@/server/vehicle-brands/vehicle-brand.dto";
+
+import type { AdminDataTableColumn } from "../../../_components/admin-data-table";
 import { AdminResourcePage } from "../../../_components/admin-resource-page";
 
-import type { VehicleBrandDto } from "@/server/vehicle-brands/vehicle-brand.dto";
-import type { AdminDataTableColumn } from "../../../_components/admin-data-table";
-
 import { useVehicleBrands } from "../_hooks/use-vehicle-brands";
+
+function getModelsLabel(count: number) {
+  const remainder10 = count % 10;
+  const remainder100 = count % 100;
+
+  if (remainder10 === 1 && remainder100 !== 11) {
+    return `${count} модель`;
+  }
+
+  if (remainder10 >= 2 && remainder10 <= 4 && (remainder100 < 12 || remainder100 > 14)) {
+    return `${count} модели`;
+  }
+
+  return `${count} моделей`;
+}
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ru-RU", {
@@ -39,7 +54,7 @@ const columns: AdminDataTableColumn<VehicleBrandDto>[] = [
     id: "models",
     header: "Модели",
     width: "15%",
-    cell: (brand) => `${brand.modelsCount}`,
+    cell: (brand) => getModelsLabel(brand.modelsCount),
   },
   {
     id: "updatedAt",
@@ -51,7 +66,6 @@ const columns: AdminDataTableColumn<VehicleBrandDto>[] = [
 
 export function VehicleBrandsPage() {
   const router = useRouter();
-
   const [search, setSearch] = useState("");
 
   const { data: brands = [], isPending, isFetching, error, refetch } = useVehicleBrands();

@@ -28,6 +28,7 @@ export function useVehicleBrand(id: string) {
   return useQuery({
     queryKey: adminQueryKeys.vehicleBrands.detail(id),
     queryFn: ({ signal }) => getVehicleBrand(id, signal),
+    enabled: Boolean(id),
   });
 }
 
@@ -37,7 +38,9 @@ export function useCreateVehicleBrand() {
   return useMutation({
     mutationFn: (input: CreateVehicleBrandInput) => createVehicleBrand(input),
 
-    onSuccess: async () => {
+    onSuccess: async (brand) => {
+      queryClient.setQueryData(adminQueryKeys.vehicleBrands.detail(brand.id), brand);
+
       await queryClient.invalidateQueries({
         queryKey: adminQueryKeys.vehicleBrands.lists(),
       });
@@ -74,7 +77,7 @@ export function useDeleteVehicleBrand() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteVehicleBrand(id),
+    mutationFn: deleteVehicleBrand,
 
     onSuccess: async (_, id) => {
       queryClient.removeQueries({

@@ -2,11 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FormProvider, useForm, type SubmitHandler } from "react-hook-form";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
 
 import type { AdminProductDto } from "@/server/products/product.dto";
@@ -15,10 +13,12 @@ import { productFormSchema, type ProductFormValues } from "./product-form-schema
 
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductImagesField } from "./product-images-field";
-import { ProductStatusField } from "./product-status-field";
 
 import { AdminEntityDeleteAction } from "../../../_components/admin-entity-delete-action";
-import { AdminEntityForm, AdminEntityFormFrame } from "../../../_components/admin-entity-form";
+import { AdminEntityEditor } from "../../../_components/admin-entity-editor";
+import { AdminEntityForm } from "../../../_components/admin-entity-form";
+
+import { useAdminFormHydration } from "../../../_hooks/use-admin-form-hydration";
 
 import {
   useApplyProductImageChanges,
@@ -27,6 +27,7 @@ import {
   useProduct,
   useUpdateProduct,
 } from "../../_hooks/use-products";
+import { ProductStatusField } from "./product-status-field";
 
 type ProductFormProps = { mode: "create" } | { mode: "edit"; productId: string };
 
@@ -54,7 +55,7 @@ export function ProductForm(props: ProductFormProps) {
   const targetProductId = routeProductId ?? createdProduct?.id ?? "";
 
   const productQuery = useProduct(targetProductId);
-  const product = productQuery.data ?? createdProduct;
+  const product = productQuery.data ?? createdProduct ?? undefined;
 
   const productId = routeProductId ?? product?.id ?? null;
   const isPersisted = productId !== null;
@@ -79,14 +80,10 @@ export function ProductForm(props: ProductFormProps) {
   const {
     reset,
     handleSubmit,
-    formState: { isDirty, isSubmitting },
+    formState: { isSubmitting },
   } = form;
 
-  useEffect(() => {
-    if (!product || isDirty) return;
-
-    reset(toFormValues(product));
-  }, [product, isDirty, reset]);
+  useAdminFormHydration(form, product, toFormValues);
 
   const frameProps = {
     eyebrow: "GRANFORT / ПРОИЗВОДСТВО",
@@ -134,6 +131,8 @@ export function ProductForm(props: ProductFormProps) {
   }
 
   const onSubmit: SubmitHandler<ProductFormValues> = async (values) => {
+    const isUpdating = productId !== null;
+
     try {
       const commonPayload = {
         name: values.name,
@@ -143,21 +142,20 @@ export function ProductForm(props: ProductFormProps) {
         sortOrder: values.sortOrder,
       };
 
-      const savedProduct =
-        productId !== null
-          ? await updateMutation.mutateAsync({
-              id: productId,
-              input: {
-                ...commonPayload,
-                status: values.status,
-              },
-            })
-          : await createMutation.mutateAsync({
+      const savedProduct = isUpdating
+        ? await updateMutation.mutateAsync({
+            id: productId,
+            input: {
               ...commonPayload,
-              compatibilities: [],
-            });
+              status: values.status,
+            },
+          })
+        : await createMutation.mutateAsync({
+            ...commonPayload,
+            compatibilities: [],
+          });
 
-      if (props.mode === "create") {
+      if (!isUpdating) {
         setCreatedProduct(savedProduct);
       }
 
@@ -168,7 +166,7 @@ export function ProductForm(props: ProductFormProps) {
       if (!imagesApplied) return;
 
       toast.add({
-        title: productId !== null ? "Товар обновлён" : "Товар создан",
+        title: isUpdating ? "Товар обновлён" : "Товар создан",
         description: "Все изменения успешно сохранены.",
         type: "success",
       });
@@ -183,48 +181,13 @@ export function ProductForm(props: ProductFormProps) {
     }
   };
 
-  const isLoading = props.mode === "edit" && productQuery.isPending;
-
-  const loadError =
-    productQuery.error instanceof Error
-      ? productQuery.error.message
-      : "Не удалось загрузить товар.";
-
-  if (isLoading) {
-    return (
-      <AdminEntityFormFrame {...frameProps}>
-        <Card>
-          <CardContent className="text-muted-foreground py-8 text-sm">
-            Загрузка товара...
-          </CardContent>
-        </Card>
-      </AdminEntityFormFrame>
-    );
-  }
-
-  if (props.mode === "edit" && !product && productQuery.isError) {
-    return (
-      <AdminEntityFormFrame {...frameProps}>
-        <Card>
-          <CardContent className="space-y-4 py-6">
-            <p className="text-destructive text-sm">{loadError}</p>
-
-            <Button type="button" variant="outline" onClick={() => router.push("/admin/products")}>
-              Вернуться к товарам
-            </Button>
-          </CardContent>
-        </Card>
-      </AdminEntityFormFrame>
-    );
-  }
-
   const isSaving =
     isSubmitting ||
     createMutation.isPending ||
     updateMutation.isPending ||
     imageChangesMutation.isPending;
 
-  return (
+  const editorContent = (
     <FormProvider {...form}>
       <AdminEntityForm
         {...frameProps}
@@ -255,5 +218,20 @@ export function ProductForm(props: ProductFormProps) {
         />
       </AdminEntityForm>
     </FormProvider>
+  );
+
+  if (props.mode === "create") {
+    return editorContent;
+  }
+
+  return (
+    <AdminEntityEditor
+      {...frameProps}
+      query={productQuery}
+      loadingMessage="Загрузка товара..."
+      onRetry={() => void productQuery.refetch()}
+    >
+      {editorContent}
+    </AdminEntityEditor>
   );
 }

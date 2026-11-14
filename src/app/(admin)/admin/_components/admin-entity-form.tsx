@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminPageLayout } from "./admin-page-layout";
 
-type AdminEntityFormFrameProps = {
+export type AdminEntityFormFrameProps = {
   eyebrow: string;
   title: string;
   description: string;
