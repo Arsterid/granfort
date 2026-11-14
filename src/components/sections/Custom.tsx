@@ -1,3 +1,6 @@
+import { assetPath } from "@/lib/assetPath";
+import Image from "next/image";
+
 export default function Custom() {
   return (
     <section
@@ -73,42 +76,15 @@ export default function Custom() {
               <span className="text-brand-highlight">GF — 03</span>
             </div>
 
-            <div className="text-on-dark/75 relative z-10 flex w-full items-center justify-center">
-              <svg
-                viewBox="0 0 520 300"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                className="h-auto w-full max-w-[470px] overflow-visible"
-              >
-                <path
-                  d="M65 174L94 126L149 101L370 101L426 130L458 174"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path d="M105 174H415L393 207H127L105 174Z" stroke="currentColor" strokeWidth="2" />
-                <path d="M149 101L173 174M370 101L347 174" stroke="currentColor" strokeWidth="2" />
-                <path d="M127 207L115 229H405L393 207" stroke="currentColor" strokeWidth="3" />
-                <path d="M160 229V246M360 229V246" stroke="currentColor" strokeWidth="3" />
-                <path d="M185 174V207M335 174V207" stroke="currentColor" strokeWidth="2" />
-                <path d="M65 174H105M415 174H458" stroke="currentColor" strokeWidth="3" />
-                <circle cx="65" cy="174" r="5" fill="currentColor" />
-                <circle cx="458" cy="174" r="5" fill="currentColor" />
-                <path
-                  d="M260 101V174M245 101H275"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  strokeDasharray="5 6"
-                />
-                <path
-                  d="M90 263H430"
-                  stroke="currentColor"
-                  strokeOpacity=".35"
-                  strokeWidth="1"
-                  strokeDasharray="4 7"
-                />
-              </svg>
-            </div>
+            <Image
+              src={assetPath("/images/tuning-parts.png")}
+              alt="Части тюнинга"
+              fill
+              sizes="(max-width: 900px) 100vw, 50vw"
+              unoptimized
+              className="object-contain object-center"
+              loading="eager"
+            />
 
             <div className="relative z-10 flex flex-col gap-2">
               <span className="text-micro text-brand-highlight font-bold tracking-[0.14em]">

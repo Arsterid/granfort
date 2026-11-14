@@ -5,6 +5,8 @@ import Custom from "@/components/sections/Custom";
 import Hero from "@/components/sections/Hero";
 import Products from "@/components/sections/Products";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <>
