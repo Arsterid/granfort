@@ -10,6 +10,7 @@ export type VehicleVariantFilters = {
 
 export const adminQueryKeys = {
   all: adminRoot,
+  overview: () => [...adminRoot, "overview"] as const,
 
   products: {
     all: () => [...adminRoot, "products"] as const,

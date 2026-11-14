@@ -20,6 +20,7 @@ import {
   listVehicleVariantsQuerySchema,
   updateVehicleVariantSchema,
 } from "../vehicle-variants/vehicle-variant.schema";
+import { adminOverviewDtoSchema } from "../admin-overview/admin-overview.dto";
 
 export const registry = new OpenAPIRegistry();
 
@@ -163,6 +164,18 @@ const VehicleVariantIdParams = z
   })
   .meta({
     id: "VehicleVariantIdParams",
+  });
+
+const AdminOverview = adminOverviewDtoSchema.meta({
+  id: "AdminOverview",
+});
+
+const AdminOverviewResponse = z
+  .strictObject({
+    data: AdminOverview,
+  })
+  .meta({
+    id: "AdminOverviewResponse",
   });
 
 registry.registerPath({
@@ -1282,6 +1295,57 @@ registry.registerPath({
     },
     500: {
       description: "Internal server error",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/v1/admin/overview",
+  operationId: "getAdminOverview",
+  tags: ["Admin"],
+  summary: "Get admin overview",
+  description:
+    "Returns aggregated statistics for the product and vehicle catalogs, " +
+    "products requiring attention, and recently updated products.",
+
+  security: [{ [authSession.name]: [] }],
+
+  responses: {
+    200: {
+      description: "Administrative catalog overview",
+      content: {
+        "application/json": {
+          schema: AdminOverviewResponse,
+        },
+      },
+    },
+
+    401: {
+      description: "Authentication required",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponse,
+        },
+      },
+    },
+
+    403: {
+      description: "Administrator access required",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponse,
+        },
+      },
+    },
+
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: ApiErrorResponse,
+        },
+      },
     },
   },
 });

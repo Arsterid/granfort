@@ -38,6 +38,10 @@ export function generateOpenApiDocument() {
         name: "Vehicle Variants",
         description: "Vehicle generations, production years and trim configurations",
       },
+      {
+        name: "Admin",
+        description: "Administrative dashboard and overview",
+      },
     ],
   });
 }
