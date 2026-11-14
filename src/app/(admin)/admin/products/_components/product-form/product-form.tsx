@@ -13,9 +13,9 @@ import type { AdminProductDto } from "@/server/products/product.dto";
 
 import { productFormSchema, type ProductFormValues } from "./product-form-schema";
 
-import { ProductStatusField } from "../product-status-field";
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductImagesField } from "./product-images-field";
+import { ProductStatusField } from "./product-status-field";
 
 import { AdminEntityDeleteAction } from "../../../_components/admin-entity-delete-action";
 import { AdminEntityForm, AdminEntityFormFrame } from "../../../_components/admin-entity-form";
