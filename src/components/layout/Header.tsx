@@ -2,7 +2,6 @@
 
 import { assetPath } from "@/lib/assetPath";
 import Image from "next/image";
-import { useState } from "react";
 
 const navigation = [
   { label: "О компании", href: "#about" },
@@ -13,10 +12,6 @@ const navigation = [
 ];
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const closeMenu = () => setIsMenuOpen(false);
-
   return (
     <header className="h-header border-header-border bg-header max-md:h-header-compact sticky top-0 z-50 border-b backdrop-blur-md">
       <div className="max-w-site max-xs:px-4 mx-auto flex h-full w-full items-center justify-between px-8">
@@ -24,7 +19,6 @@ export default function Header() {
           href="#top"
           className="inline-flex shrink-0 items-center"
           aria-label="GRANFORT — на главную"
-          onClick={closeMenu}
         >
           <Image
             src={assetPath("/granfort-logo.svg")}
@@ -38,7 +32,7 @@ export default function Header() {
         </a>
 
         <nav
-          className="hidden items-center gap-8 max-lg:gap-4 max-md:flex"
+          className="flex items-center gap-8 max-lg:gap-4 max-md:hidden"
           aria-label="Основная навигация"
         >
           {navigation.map((item) => (
@@ -54,51 +48,14 @@ export default function Header() {
 
         <a
           href="#contacts"
-          className="rounded-control border-brand bg-brand text-primary-foreground hover:border-brand-dark hover:bg-brand-dark inline-flex min-h-11 items-center justify-center gap-4 border px-5 text-xs font-extrabold transition-colors duration-200 max-md:hidden"
+          className="rounded-control border-brand bg-brand text-primary-foreground hover:border-brand-dark hover:bg-brand-dark inline-flex min-h-11 items-center justify-center gap-4 border px-5 text-xs font-extrabold transition-colors duration-200 max-sm:px-3.5"
         >
           Обсудить проект
           <span className="text-lg leading-none" aria-hidden="true">
             ↗
           </span>
         </a>
-
-        <button
-          type="button"
-          className="rounded-control border-header-control-border hover:border-header-control-hover-border hidden h-11 w-11 flex-col items-center justify-center gap-1.5 border bg-transparent p-2.5 transition-colors duration-200 max-md:flex"
-          aria-label={isMenuOpen ? "Закрыть меню" : "Открыть меню"}
-          aria-expanded={isMenuOpen}
-          aria-controls="mobile-navigation"
-          onClick={() => setIsMenuOpen((current) => !current)}
-        >
-          <span className="bg-header-icon h-0.5 w-full" aria-hidden="true" />
-          <span className="bg-header-icon h-0.5 w-full" aria-hidden="true" />
-        </button>
       </div>
-
-      <nav
-        id="mobile-navigation"
-        className={`${isMenuOpen ? "flex" : "hidden"} border-header-border bg-header-menu absolute top-full right-0 left-0 z-10 flex-col border-b px-8 pt-3 pb-6 shadow-lg max-md:hidden`}
-        aria-label="Мобильная навигация"
-      >
-        {navigation.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            onClick={closeMenu}
-            className="border-header-border text-header-link-xs hover:text-header-foreground border-b py-3 text-sm font-bold transition-colors duration-200"
-          >
-            {item.label}
-          </a>
-        ))}
-
-        <a
-          href="#contacts"
-          onClick={closeMenu}
-          className="rounded-control border-brand bg-brand text-primary-foreground hover:border-brand-dark hover:bg-brand-dark mt-4 self-start border px-4 py-3 text-sm font-bold transition-colors duration-200"
-        >
-          Оставить заявку
-        </a>
-      </nav>
     </header>
   );
 }

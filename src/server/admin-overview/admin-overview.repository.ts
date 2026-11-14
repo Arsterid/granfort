@@ -23,12 +23,11 @@ export type AdminOverviewProductRecord = Prisma.ProductGetPayload<{
 }>;
 
 export type AdminOverviewRepositoryResult = {
-  productStatusCounts: Array<{
-    status: ProductStatus;
-    _count: {
-      _all: number;
-    };
-  }>;
+  productCounts: {
+    published: number;
+    drafts: number;
+    archived: number;
+  };
   brandsCount: number;
   modelsCount: number;
   variantsCount: number;
@@ -57,7 +56,9 @@ const activeProductsWithoutImagesWhere: Prisma.ProductWhereInput = {
 export const adminOverviewRepository = {
   async getForAdmin(): Promise<AdminOverviewRepositoryResult> {
     const [
-      productStatusCounts,
+      publishedCount,
+      draftsCount,
+      archivedCount,
       brandsCount,
       modelsCount,
       variantsCount,
@@ -66,15 +67,28 @@ export const adminOverviewRepository = {
       attentionProducts,
       recentProducts,
     ] = await prisma.$transaction([
-      prisma.product.groupBy({
-        by: ["status"],
-        _count: {
-          _all: true,
+      prisma.product.count({
+        where: {
+          status: ProductStatus.PUBLISHED,
+        },
+      }),
+
+      prisma.product.count({
+        where: {
+          status: ProductStatus.DRAFT,
+        },
+      }),
+
+      prisma.product.count({
+        where: {
+          status: ProductStatus.ARCHIVED,
         },
       }),
 
       prisma.vehicleBrand.count(),
+
       prisma.vehicleModel.count(),
+
       prisma.vehicleVariant.count(),
 
       prisma.product.count({
@@ -117,7 +131,11 @@ export const adminOverviewRepository = {
     ]);
 
     return {
-      productStatusCounts,
+      productCounts: {
+        published: publishedCount,
+        drafts: draftsCount,
+        archived: archivedCount,
+      },
       brandsCount,
       modelsCount,
       variantsCount,

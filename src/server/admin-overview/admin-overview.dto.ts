@@ -44,13 +44,6 @@ export const adminOverviewDtoSchema = z.strictObject({
 
 export type AdminOverviewDto = z.output<typeof adminOverviewDtoSchema>;
 
-function getStatusCount(
-  counts: AdminOverviewRepositoryResult["productStatusCounts"],
-  status: AdminOverviewProductRecord["status"]
-) {
-  return counts.find((item) => item.status === status)?._count._all ?? 0;
-}
-
 function toProductSummaryDto(product: AdminOverviewProductRecord) {
   return {
     id: product.id,
@@ -80,11 +73,7 @@ function toAttentionProductDto(product: AdminOverviewProductRecord) {
 }
 
 export function toAdminOverviewDto(data: AdminOverviewRepositoryResult): AdminOverviewDto {
-  const published = getStatusCount(data.productStatusCounts, ProductStatus.PUBLISHED);
-
-  const drafts = getStatusCount(data.productStatusCounts, ProductStatus.DRAFT);
-
-  const archived = getStatusCount(data.productStatusCounts, ProductStatus.ARCHIVED);
+  const { published, drafts, archived } = data.productCounts;
 
   return {
     products: {
